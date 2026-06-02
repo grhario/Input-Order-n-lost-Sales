@@ -709,35 +709,21 @@ function showTab(tab, btn) {
 }
 
 /* GAS HELPERS */
-function call(action, timeoutMs = 18000) {
-  return new Promise((res, rej) => {
-    let done = false;
-    const timer = setTimeout(() => { if (!done) { done = true; rej(new Error('Request timeout')); } }, timeoutMs);
-    if (typeof google !== 'undefined' && google.script && google.script.run) {
-      google.script.run
-        .withSuccessHandler(r => { if (done) return; done = true; clearTimeout(timer); res(r); })
-        .withFailureHandler(e => { if (done) return; done = true; clearTimeout(timer); rej(e); })
-        .getDataFromSheet(action);
-    } else {
-      clearTimeout(timer);
-      rej(new Error('Google Apps Script tidak tersedia'));
-    }
-  });
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbyuvtZsZ1DTps_dqNz8aki5ji-N5jAOYD74s8DXdrhahShPQp8VoXWxxtZwMtlBuuBbdQ/exec';
+
+function call(action, timeoutMs) {
+  return fetch(GAS_URL, {
+    method: 'POST',
+    body: JSON.stringify({ action: action }),
+    headers: { 'Content-Type': 'text/plain' }
+  }).then(function(r) { return r.json(); });
 }
-function callSubmit(action, data, timeoutMs = 16000) {
-  return new Promise((res, rej) => {
-    let done = false;
-    const timer = setTimeout(() => { if (!done) { done = true; rej(new Error('Request timeout')); } }, timeoutMs);
-    if (typeof google !== 'undefined' && google.script && google.script.run) {
-      google.script.run
-        .withSuccessHandler(r => { if (done) return; done = true; clearTimeout(timer); res(r); })
-        .withFailureHandler(e => { if (done) return; done = true; clearTimeout(timer); rej(e); })
-        .submitFromFrontend(action, data);
-    } else {
-      clearTimeout(timer);
-      rej(new Error('Google Apps Script tidak tersedia'));
-    }
-  });
+function callSubmit(action, data) {
+  return fetch(GAS_URL, {
+    method: 'POST',
+    body: JSON.stringify({ action: action, data: data }),
+    headers: { 'Content-Type': 'text/plain' }
+  }).then(function(r) { return r.json(); });
 }
 
 /* LOCATIONS */
